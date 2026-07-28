@@ -1,0 +1,25 @@
+name: 'Find Latest Tag'
+description: 'Find the latest git tag matching a regex, sorted by semver (looks at all tags, not just GitHub Releases)'
+inputs:
+  repo:
+    description: 'owner/repo to look up tags in'
+    required: false
+    default: ${{ github.repository }}
+  regex:
+    description: 'Extended regex (grep -E) the tag name must fully match'
+    required: true
+outputs:
+  tag:
+    description: 'The latest matching tag, or empty if none matched'
+    value: ${{ steps.find.outputs.tag }}
+runs:
+  using: composite
+  steps:
+    - id: find
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        tag=$(gh api "repos/${{ inputs.repo }}/tags" --paginate --jq '.[].name' \
+          | grep -E '${{ inputs.regex }}' | sort -V | tail -1)
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"

@@ -1,0 +1,24 @@
+name: 'Push Tag'
+description: 'Push the current commit and a tag together, e.g. the tag output from OpenShock/release-tool. No-op if tag is empty.'
+inputs:
+  tag:
+    description: 'Tag to push alongside HEAD. Leave empty to no-op (e.g. when release-tool produced no tag).'
+    required: true
+  atomic:
+    description: 'Push the commit and tag as a single atomic ref update'
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if [ -z "${{ inputs.tag }}" ]; then
+          echo "No tag to push"
+          exit 0
+        fi
+        if [ "${{ inputs.atomic }}" = "true" ]; then
+          git push --atomic origin HEAD "${{ inputs.tag }}"
+        else
+          git push origin HEAD "${{ inputs.tag }}"
+        fi

@@ -1,0 +1,24 @@
+name: 'NSIS Build'
+description: 'Install NSIS and compile an installer script (Windows runners only)'
+inputs:
+  script-file:
+    description: 'Path to the .nsi script to compile'
+    required: true
+  plugin-dir:
+    description: 'Additional NSIS plugin directory to register before compiling'
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Install NSIS
+      shell: pwsh
+      run: choco install nsis -y
+    - name: Compile installer
+      shell: pwsh
+      run: |
+        if ("${{ inputs.plugin-dir }}") {
+          makensis /X"!addplugindir `"${{ inputs.plugin-dir }}`"" "${{ inputs.script-file }}"
+        } else {
+          makensis "${{ inputs.script-file }}"
+        }

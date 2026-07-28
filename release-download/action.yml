@@ -1,0 +1,26 @@
+name: 'Release Download'
+description: 'Download (and optionally extract) an asset from the latest GitHub release of a repo'
+inputs:
+  repo:
+    description: 'owner/repo to download the release asset from'
+    required: true
+  pattern:
+    description: 'Glob pattern matching the asset filename'
+    required: true
+  extract:
+    description: "Unzip any downloaded .zip assets in place"
+    required: false
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release download --repo ${{ inputs.repo }} --pattern '${{ inputs.pattern }}'
+        if [ "${{ inputs.extract }}" = "true" ]; then
+          for f in *.zip; do
+            [ -f "$f" ] && unzip -o "$f"
+          done
+        fi

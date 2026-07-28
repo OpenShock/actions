@@ -1,0 +1,49 @@
+name: 'Open PR From Diff'
+description: 'Commit any working-tree changes to a branch, push it, and open (or reuse) a PR for it'
+inputs:
+  branch:
+    description: 'Branch to commit and push the diff to'
+    required: true
+  commit-message:
+    description: 'Commit message for the diff'
+    required: true
+  title:
+    description: 'Title for the PR, if one needs to be created'
+    required: true
+  body:
+    description: 'Body for the PR, if one needs to be created'
+    required: false
+    default: ''
+outputs:
+  pr-url:
+    description: 'URL of the opened or existing PR, empty if there was nothing to commit'
+    value: ${{ steps.pr.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - id: pr
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -B "${{ inputs.branch }}"
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+          echo "url=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        git commit -m "${{ inputs.commit-message }}"
+        if git ls-remote --exit-code --heads origin "${{ inputs.branch }}" >/dev/null 2>&1; then
+          git push -u origin "${{ inputs.branch }}" --force-with-lease
+        else
+          git push -u origin "${{ inputs.branch }}"
+        fi
+        if gh pr view "${{ inputs.branch }}" >/dev/null 2>&1; then
+          url=$(gh pr view "${{ inputs.branch }}" --json url --jq .url)
+        else
+          url=$(gh pr create --title "${{ inputs.title }}" --head "${{ inputs.branch }}" --body "${{ inputs.body }}")
+        fi
+        echo "url=$url" >> "$GITHUB_OUTPUT"

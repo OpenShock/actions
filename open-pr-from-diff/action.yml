@@ -25,25 +25,29 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        BRANCH: ${{ inputs.branch }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        TITLE: ${{ inputs.title }}
+        BODY: ${{ inputs.body }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout -B "${{ inputs.branch }}"
+        git checkout -B "$BRANCH"
         git add -A
         if git diff --cached --quiet; then
           echo "No changes to commit"
           echo "url=" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        git commit -m "${{ inputs.commit-message }}"
-        if git ls-remote --exit-code --heads origin "${{ inputs.branch }}" >/dev/null 2>&1; then
-          git push -u origin "${{ inputs.branch }}" --force-with-lease
+        git commit -m "$COMMIT_MESSAGE"
+        if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+          git push -u origin "$BRANCH" --force-with-lease
         else
-          git push -u origin "${{ inputs.branch }}"
+          git push -u origin "$BRANCH"
         fi
-        if gh pr view "${{ inputs.branch }}" >/dev/null 2>&1; then
-          url=$(gh pr view "${{ inputs.branch }}" --json url --jq .url)
+        if gh pr view "$BRANCH" >/dev/null 2>&1; then
+          url=$(gh pr view "$BRANCH" --json url --jq .url)
         else
-          url=$(gh pr create --title "${{ inputs.title }}" --head "${{ inputs.branch }}" --body "${{ inputs.body }}")
+          url=$(gh pr create --title "$TITLE" --head "$BRANCH" --body "$BODY")
         fi
         echo "url=$url" >> "$GITHUB_OUTPUT"

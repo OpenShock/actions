@@ -20,7 +20,10 @@ runs:
     - shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        EVENT_TYPE: ${{ inputs.event-type }}
+        CLIENT_PAYLOAD: ${{ inputs.client-payload }}
       run: |
-        jq -n --arg et '${{ inputs.event-type }}' --argjson cp '${{ inputs.client-payload }}' \
+        jq -n --arg et "$EVENT_TYPE" --argjson cp "$CLIENT_PAYLOAD" \
           '{event_type: $et, client_payload: $cp}' \
-        | gh api "repos/${{ inputs.repo }}/dispatches" --input -
+        | gh api "repos/$REPO/dispatches" --input -

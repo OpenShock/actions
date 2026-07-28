@@ -17,9 +17,12 @@ runs:
     - shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        REPO: ${{ inputs.repo }}
+        PATTERN: ${{ inputs.pattern }}
+        EXTRACT: ${{ inputs.extract }}
       run: |
-        gh release download --repo ${{ inputs.repo }} --pattern '${{ inputs.pattern }}'
-        if [ "${{ inputs.extract }}" = "true" ]; then
+        gh release download --repo "$REPO" --pattern "$PATTERN"
+        if [ "$EXTRACT" = "true" ]; then
           for f in *.zip; do
             [ -f "$f" ] && unzip -o "$f"
           done

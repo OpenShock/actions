@@ -12,13 +12,16 @@ runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        TAG: ${{ inputs.tag }}
+        ATOMIC: ${{ inputs.atomic }}
       run: |
-        if [ -z "${{ inputs.tag }}" ]; then
+        if [ -z "$TAG" ]; then
           echo "No tag to push"
           exit 0
         fi
-        if [ "${{ inputs.atomic }}" = "true" ]; then
-          git push --atomic origin HEAD "${{ inputs.tag }}"
+        if [ "$ATOMIC" = "true" ]; then
+          git push --atomic origin HEAD "$TAG"
         else
-          git push origin HEAD "${{ inputs.tag }}"
+          git push origin HEAD "$TAG"
         fi

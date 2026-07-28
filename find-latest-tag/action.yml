@@ -19,7 +19,9 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        REPO: ${{ inputs.repo }}
+        REGEX: ${{ inputs.regex }}
       run: |
-        tag=$(gh api "repos/${{ inputs.repo }}/tags" --paginate --jq '.[].name' \
-          | grep -E '${{ inputs.regex }}' | sort -V | tail -1)
+        tag=$(gh api "repos/$REPO/tags" --paginate --jq '.[].name' \
+          | grep -E "$REGEX" | sort -V | tail -1)
         echo "tag=$tag" >> "$GITHUB_OUTPUT"

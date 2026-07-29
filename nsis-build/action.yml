@@ -14,6 +14,20 @@ runs:
     - name: Install NSIS
       shell: pwsh
       run: choco install nsis -y
+    - name: Add NSIS to PATH
+      shell: pwsh
+      run: |
+        # choco updates the machine PATH in the registry, but the next step
+        # runs in a fresh process that won't see it unless we also add it to
+        # GITHUB_PATH, which GitHub Actions applies to subsequent steps.
+        $nsisDir = "${env:ProgramFiles(x86)}\NSIS"
+        if (-not (Test-Path $nsisDir)) {
+          $nsisDir = "$env:ProgramFiles\NSIS"
+        }
+        if (-not (Test-Path "$nsisDir\makensis.exe")) {
+          throw "makensis.exe not found in expected NSIS install directory: $nsisDir"
+        }
+        Add-Content -Path $env:GITHUB_PATH -Value $nsisDir
     - name: Compile installer
       shell: pwsh
       env:
